@@ -13,7 +13,7 @@ public class AmqpClient(IChannel channel)
    private readonly Channel<Response<BasicDeliverEventArgs>> _queue = 
       System.Threading.Channels.Channel.CreateUnbounded<Response<BasicDeliverEventArgs>>();
 
-   public Response<ReadOnlyMemory<byte>> Publish<TProperties>(string exchange, string routingKey, 
+   public Response<object> Publish<TProperties>(string exchange, string routingKey, 
       in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
       where TProperties : IReadOnlyBasicProperties, IAmqpHeader
    {
@@ -22,10 +22,10 @@ public class AmqpClient(IChannel channel)
        var sizeBytes = body.Length + exchange.Length + routingKey.Length +
                        GetSizeBytesOfBasicProperties(basicProperties);
       
-       return Response.Ok(payload: body, sizeBytes: sizeBytes);
+       return Response.Ok(sizeBytes: sizeBytes);
    }
    
-   public Response<ReadOnlyMemory<byte>> Publish<TProperties>(CachedString exchange, CachedString routingKey, 
+   public Response<object> Publish<TProperties>(CachedString exchange, CachedString routingKey, 
       in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
       where TProperties : IReadOnlyBasicProperties, IAmqpHeader
    {
@@ -34,10 +34,10 @@ public class AmqpClient(IChannel channel)
       var sizeBytes = body.Length + exchange.Bytes.Length + routingKey.Bytes.Length 
                       + GetSizeBytesOfBasicProperties(basicProperties);
       
-      return Response.Ok(payload: body, sizeBytes: sizeBytes);
+      return Response.Ok(sizeBytes: sizeBytes);
    }
    
-   public Response<ReadOnlyMemory<byte>> Publish<T>(PublicationAddress addr, in T basicProperties,
+   public Response<object> Publish<T>(PublicationAddress addr, in T basicProperties,
       ReadOnlyMemory<byte> body) where T : IReadOnlyBasicProperties, IAmqpHeader
    {
       Channel.BasicPublishAsync(addr, basicProperties, body);
@@ -45,7 +45,7 @@ public class AmqpClient(IChannel channel)
       var sizeBytes = body.Length + addr.RoutingKey.Length + addr.ExchangeName.Length + addr.ExchangeType.Length 
                       + GetSizeBytesOfBasicProperties(basicProperties);
       
-      return Response.Ok(payload: body, sizeBytes: sizeBytes);
+      return Response.Ok(sizeBytes: sizeBytes);
    }
    
    public void AddConsumer(string queue, bool autoAck)
