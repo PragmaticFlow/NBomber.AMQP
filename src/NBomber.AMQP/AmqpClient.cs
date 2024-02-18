@@ -53,35 +53,11 @@ public class AmqpClient(IChannel channel)
       var consumer = new EventingBasicConsumer(Channel);
       consumer.Received += (model, ea) =>
       {
-         var sizeBytes = ea.Body.Length;
-         
-         var headersLength = 0;
-         if (ea.BasicProperties.IsHeadersPresent())
-         {
-            headersLength = ea.BasicProperties.Headers!.Sum(kv =>
-            {
-               var result = kv.Key.Length;
-               result += kv.Value is byte[] bytes ? bytes.Length : 0;
-               result += kv.Value is string str ? str.Length : 0;
-               
-               return result;
-            });
-         }
+         var sizeBytes = GetSizeBytesOfBasicProperties(ea.BasicProperties);
 
-         sizeBytes += headersLength;
+         sizeBytes += ea.Body.Length;
          sizeBytes += ea.ConsumerTag.Length;
          sizeBytes += ea.RoutingKey.Length;
-         
-         sizeBytes += ea.BasicProperties.Expiration?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.Type?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.AppId?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.ClusterId?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.ContentEncoding?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.ContentType?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.CorrelationId?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.MessageId?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.ReplyTo?.Length ?? 0;
-         sizeBytes += ea.BasicProperties.UserId?.Length ?? 0;
          
          _queue.Writer.WriteAsync(Response.Ok(payload: ea, sizeBytes: sizeBytes));
       };
