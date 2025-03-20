@@ -18,22 +18,20 @@ public class PingPongAmqpTest
         var scenario = Scenario.Create("ping_pong_amqp_scenario", async ctx =>
             {
                 var amqpClient = new AmqpClient(channel);
-                
-                await amqpClient.Channel.ExchangeDeclareAsync(exchange: "myExchange", type: ExchangeType.Topic);//Direct
-
-                var topicName = ctx.ScenarioInfo.InstanceId;
-                await amqpClient.Channel.BasicPublishAsync(exchange: "myExchange", routingKey: topicName, body: payload);
-
                 var prop = new BasicProperties();
+                var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
 
-                await amqpClient.Channel.QueueBindAsync(queue: topicName, exchange: "myExchange", 
-                    routingKey: topicName);
+                await amqpClient.Channel.ExchangeDeclareAsync(exchange: "myExchange", type: ExchangeType.Direct);
+                await amqpClient.Channel.QueueDeclareAsync(queue: scenarioInstanceId, durable: false, exclusive: false, autoDelete: false);                           
+
+                await amqpClient.Channel.QueueBindAsync(queue: scenarioInstanceId, exchange: "myExchange", 
+                    routingKey: scenarioInstanceId);
                 
-                amqpClient.AddConsumer(queue: topicName, autoAck: true);
+                amqpClient.AddConsumer(queue: scenarioInstanceId, autoAck: true);
                 
                 var publish = Step.Run("publish", ctx, async () =>
                 {
-                    return amqpClient.Publish(exchange: "myExchange", routingKey: topicName, prop, body: payload);
+                    return amqpClient.Publish(exchange: "myExchange", routingKey: scenarioInstanceId, prop, body: payload);
                 });
 
                 var receive = Step.Run("receive", ctx, () =>
