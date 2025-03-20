@@ -19,20 +19,27 @@ public class PingPongAmqpTest
             {
                 var amqpClient = new AmqpClient(channel);
                 
-                await amqpClient.Channel.ExchangeDeclareAsync(exchange: "myExchange", type: ExchangeType.Fanout);
+                await amqpClient.Channel.ExchangeDeclareAsync(exchange: "myExchange", type: ExchangeType.Topic);//Direct
+
+                var topicName = ctx.ScenarioInfo.ScenarioName;
+                await amqpClient.Channel.BasicPublishAsync(exchange: "myExchange", routingKey: topicName, body: payload);
 
                 var prop = new BasicProperties();
 
-                var queueName = (await amqpClient.Channel.QueueDeclareAsync()).QueueName;
-                await amqpClient.Channel.QueueBindAsync(queue: queueName, exchange: "myExchange", 
-                    routingKey: string.Empty);
+                await amqpClient.Channel.QueueBindAsync(queue: topicName, exchange: "myExchange", 
+                    routingKey: topicName);
                 
-                amqpClient.AddConsumer(queue: queueName, true);
-
+                amqpClient.AddConsumer(queue: topicName, autoAck: true);
+                
                 var publish = Step.Run("publish", ctx, async () =>
-                    amqpClient.Publish(exchange: "myExchange", routingKey: string.Empty, prop, body: payload));
+                {
+                    return amqpClient.Publish(exchange: "myExchange", routingKey: topicName, prop, body: payload);
+                });
 
-                var receive = Step.Run("receive", ctx, async () => await amqpClient.Receive());
+                var receive = Step.Run("receive", ctx, () =>
+                {
+                    return amqpClient.Receive().AsTask();
+                });
                 
                 return Response.Ok();
             })
