@@ -3,17 +3,17 @@ using NBomber.CSharp;
 using NBomber.Data;
 using RabbitMQ.Client;
 
-new PingPongAmqpTest().Run();
+await new PingPongAmqpTest().Run();
 
 public class PingPongAmqpTest
 {
-    public void Run()
+    public async Task Run()
     {
         var payload = Data.GenerateRandomBytes(200);
         
         var factory = new ConnectionFactory { HostName = "localhost" };
-        using var connection = factory.CreateConnection();
-        using var channel = connection.CreateChannel();
+        using var connection = await factory.CreateConnectionAsync();
+        using var channel = await connection.CreateChannelAsync();
 
         var scenario = Scenario.Create("ping_pong_amqp_scenario", async ctx =>
             {
@@ -21,7 +21,7 @@ public class PingPongAmqpTest
                 
                 await amqpClient.Channel.ExchangeDeclareAsync(exchange: "myExchange", type: ExchangeType.Topic);//Direct
 
-                var topicName = ctx.ScenarioInfo.ScenarioName;
+                var topicName = ctx.ScenarioInfo.InstanceId;
                 await amqpClient.Channel.BasicPublishAsync(exchange: "myExchange", routingKey: topicName, body: payload);
 
                 var prop = new BasicProperties();
@@ -51,7 +51,7 @@ public class PingPongAmqpTest
         NBomberRunner
             .RegisterScenarios(scenario)
             .Run();
-        
-        connection.Close();
+
+        await connection.CloseAsync();
     }
 }

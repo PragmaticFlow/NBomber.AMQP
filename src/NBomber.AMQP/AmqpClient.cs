@@ -17,9 +17,9 @@ public class AmqpClient(IChannel channel)
 		in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
 		where TProperties : IReadOnlyBasicProperties, IAmqpHeader
 	{
-		Channel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory);
+        Channel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body);
 
-		var sizeBytes = body.Length + exchange.Length + routingKey.Length +
+        var sizeBytes = body.Length + exchange.Length + routingKey.Length +
 		                GetSizeBytesOfBasicProperties(basicProperties);
 
 		return Response.Ok(sizeBytes: sizeBytes);
@@ -29,7 +29,7 @@ public class AmqpClient(IChannel channel)
 		in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
 		where TProperties : IReadOnlyBasicProperties, IAmqpHeader
 	{
-		Channel.BasicPublishAsync(exchange, routingKey, basicProperties, body, mandatory);
+		Channel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body);
 
 		var sizeBytes = body.Length + exchange.Bytes.Length + routingKey.Bytes.Length
 		                + GetSizeBytesOfBasicProperties(basicProperties);
@@ -50,8 +50,8 @@ public class AmqpClient(IChannel channel)
 
 	public void AddConsumer(string queue, bool autoAck)
 	{
-		var consumer = new EventingBasicConsumer(Channel);
-		consumer.Received += (model, ea) =>
+		var consumer = new AsyncEventingBasicConsumer(Channel);
+		consumer.ReceivedAsync += (model, ea) =>
 		{
 			var sizeBytes = GetSizeBytesOfBasicProperties(ea.BasicProperties);
 
@@ -60,9 +60,10 @@ public class AmqpClient(IChannel channel)
 			sizeBytes += ea.RoutingKey.Length;
 
 			_queue.Writer.WriteAsync(Response.Ok(ea, sizeBytes: sizeBytes));
+			return Task.CompletedTask;
 		};
 
-		Channel.BasicConsume(queue, autoAck, consumer);
+		Channel.BasicConsumeAsync(queue, autoAck, consumer);
 	}
 
 	private static long GetSizeBytesOfBasicProperties(IReadOnlyBasicProperties basicProperties)
