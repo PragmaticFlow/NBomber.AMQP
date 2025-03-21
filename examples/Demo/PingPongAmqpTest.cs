@@ -2,6 +2,7 @@
 using NBomber.CSharp;
 using NBomber.Data;
 using RabbitMQ.Client;
+using System.Runtime.CompilerServices;
 
 await new PingPongAmqpTest().Run();
 
@@ -21,13 +22,16 @@ public class PingPongAmqpTest
                 var prop = new BasicProperties();
                 var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
 
-                await amqpClient.Channel.ExchangeDeclareAsync(exchange: "myExchange", type: ExchangeType.Direct);
-                await amqpClient.Channel.QueueDeclareAsync(queue: scenarioInstanceId, durable: false, exclusive: false, autoDelete: false);                           
+                var connect = Step.Run("connect", ctx, async () =>
+                {
+                    return amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
+                        routingKey: scenarioInstanceId);
+                });
 
-                await amqpClient.Channel.QueueBindAsync(queue: scenarioInstanceId, exchange: "myExchange", 
-                    routingKey: scenarioInstanceId);
-                
-                amqpClient.AddConsumer(queue: scenarioInstanceId, autoAck: true);
+                var subscribe = Step.Run("subscribe", ctx, async () =>
+                {
+                    return amqpClient.Subscribe(queue: scenarioInstanceId, autoAck: true);
+                });                
                 
                 var publish = Step.Run("publish", ctx, async () =>
                 {
@@ -38,7 +42,12 @@ public class PingPongAmqpTest
                 {
                     return amqpClient.Receive().AsTask();
                 });
-                
+
+                var disconnect = Step.Run("disconnect", ctx, async () =>
+                {
+                    return amqpClient.Disconnect();
+                });
+
                 return Response.Ok();
             })
         .WithoutWarmUp()

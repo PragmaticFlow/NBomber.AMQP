@@ -1,8 +1,8 @@
-﻿using System.Threading.Channels;
-using NBomber.Contracts;
+﻿using NBomber.Contracts;
+using NBomber.CSharp;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using NBomber.CSharp;
+using System.Threading.Channels;
 
 namespace NBomber.AMQP;
 
@@ -13,7 +13,24 @@ public class AmqpClient(IChannel channel)
 	private readonly Channel<Response<BasicDeliverEventArgs>> _queue =
 		System.Threading.Channels.Channel.CreateUnbounded<Response<BasicDeliverEventArgs>>();
 
-	public Response<object> Publish<TProperties>(string exchange, string routingKey,
+	public Response<object> Connect(string exchange, string exchangeType, string queue, string routingKey, bool durable = false,
+		bool exclusive = false, bool autoDelete = false)
+	{
+        Channel.ExchangeDeclareAsync(exchange: exchange, type: exchangeType);
+        Channel.QueueDeclareAsync(queue: queue, durable: durable, exclusive: exclusive, autoDelete: autoDelete);
+        Channel.QueueBindAsync(queue: queue, exchange: exchange, routingKey: routingKey);
+
+		return Response.Ok();
+    }
+
+	public Response<object> Subscribe(string queue, bool autoAck = true)
+	{
+        AddConsumer(queue: queue, autoAck: autoAck);
+
+		return Response.Ok();
+    }
+
+    public Response<object> Publish<TProperties>(string exchange, string routingKey,
 		in TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
 		where TProperties : IReadOnlyBasicProperties, IAmqpHeader
 	{
@@ -101,4 +118,11 @@ public class AmqpClient(IChannel channel)
 	}
 
 	public ValueTask<Response<BasicDeliverEventArgs>> Receive() => _queue.Reader.ReadAsync();
+
+	public Response<object> Disconnect()
+	{
+		Channel.CloseAsync();
+
+        return Response.Ok();
+    }
 }
