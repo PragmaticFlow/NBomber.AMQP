@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "examples\Demo\Demo.
 		{3451941B-0A49-413A-AB6C-D35538626861} = {3451941B-0A49-413A-AB6C-D35538626861}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientPool", "examples\ClientPool\ClientPool.csproj", "{B333B5D6-8E99-4843-9D88-F9B1861256A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,12 +28,17 @@ Global
 		{DEFB3816-6863-8526-C070-928DA33ECCFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEFB3816-6863-8526-C070-928DA33ECCFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEFB3816-6863-8526-C070-928DA33ECCFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B333B5D6-8E99-4843-9D88-F9B1861256A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B333B5D6-8E99-4843-9D88-F9B1861256A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B333B5D6-8E99-4843-9D88-F9B1861256A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B333B5D6-8E99-4843-9D88-F9B1861256A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DEFB3816-6863-8526-C070-928DA33ECCFE} = {76D4E4E9-9859-40D5-8088-36168D25686A}
+		{B333B5D6-8E99-4843-9D88-F9B1861256A3} = {76D4E4E9-9859-40D5-8088-36168D25686A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {571E490D-60EA-41B9-9C6B-F9884459D2FD}
