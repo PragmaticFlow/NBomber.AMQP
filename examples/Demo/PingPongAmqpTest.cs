@@ -22,28 +22,28 @@ public class PingPongAmqpTest
                 var prop = new BasicProperties();
                 var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
 
-                var connect = Step.Run("connect", ctx, async () =>
+                var connect = await Step.Run("connect", ctx, async () =>
                 {
                     return amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
                         routingKey: scenarioInstanceId);
                 });
 
-                var subscribe = Step.Run("subscribe", ctx, async () =>
+                var subscribe = await Step.Run("subscribe", ctx, async () =>
                 {
                     return amqpClient.Subscribe(queue: scenarioInstanceId, autoAck: true);
                 });                
                 
-                var publish = Step.Run("publish", ctx, async () =>
+                var publish = await Step.Run("publish", ctx, async () =>
                 {
                     return amqpClient.Publish(exchange: "myExchange", routingKey: scenarioInstanceId, prop, body: payload);
                 });
 
-                var receive = Step.Run("receive", ctx, () =>
+                var receive = await Step.Run("receive", ctx, () =>
                 {
                     return amqpClient.Receive().AsTask();
                 });
 
-                var disconnect = Step.Run("disconnect", ctx, async () =>
+                var disconnect = await Step.Run("disconnect", ctx, async () =>
                 {
                     return amqpClient.Disconnect();
                 });
