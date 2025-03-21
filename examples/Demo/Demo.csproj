@@ -9,11 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\src\NBomber.AMQP\NBomber.AMQP.csproj" />
+      <ProjectReference Include="..\..\src\NBomber.AMQP\NBomber.AMQP.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="NBomber.Data" Version="5.0.0" />
+		<PackageReference Include="NBomber" Version="6.0.1" />
+		<PackageReference Include="NBomber.Data" Version="6.0.0" />
+		<PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
     </ItemGroup>
 
 </Project>
