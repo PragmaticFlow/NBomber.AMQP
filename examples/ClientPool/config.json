@@ -18,7 +18,8 @@
         "CustomSettings": {
           "AmqpServerUrl": "localhost",
           "ClientCount": 100,
-          "MsgSizeBytes": 200
+          "MsgSizeBytes": 200,
+          "UsePersistence": false
         }
       }
     ]

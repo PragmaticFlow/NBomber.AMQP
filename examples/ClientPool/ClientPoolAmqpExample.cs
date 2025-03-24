@@ -12,6 +12,7 @@ public class CustomScenarioSettings
     public string AmqpServerUrl { get; set; }
     public int ClientCount { get; set; }
     public int MsgSizeBytes { get; set; }
+    public bool UsePersistence { get; set; }
 }
 
 public class ClientPoolAmqpExample
@@ -20,12 +21,13 @@ public class ClientPoolAmqpExample
     {
         var clientPool = new ClientPool<AmqpClient>();
         var message = Array.Empty<byte>();
+        var usePersistence = false;
 
         var scenario = Scenario.Create("amqp_scenario", async ctx =>
         {
             var client = clientPool.GetClient(ctx.ScenarioInfo);
             var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
-            var prop = new BasicProperties();
+            var prop = new BasicProperties { Persistent = usePersistence };
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
@@ -47,6 +49,7 @@ public class ClientPoolAmqpExample
         {
             var config = context.CustomSettings.Get<CustomScenarioSettings>();
             message = Data.GenerateRandomBytes(config.MsgSizeBytes);
+            usePersistence = config.UsePersistence;
 
             var factory = new ConnectionFactory { HostName = config.AmqpServerUrl };
             var connection = await factory.CreateConnectionAsync();
@@ -57,7 +60,7 @@ public class ClientPoolAmqpExample
                 var amqpClient = new AmqpClient(channel);
                 var scenarioInstanceId = $"amqp_scenario_{i}";
                 var result = amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
-                        routingKey: scenarioInstanceId);
+                        routingKey: scenarioInstanceId, durable: usePersistence);
 
                 if (!result.IsError)
                 {
