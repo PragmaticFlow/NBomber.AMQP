@@ -27,15 +27,15 @@ public class ClientPoolAmqpExample
             var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
             var prop = new BasicProperties();
 
-            var publish = Step.Run("publish", ctx, async () =>
+            var publish = await Step.Run("publish", ctx, async () =>
             {
                 var response = client.Publish(exchange: "myExchange", routingKey: scenarioInstanceId, basicProperties: prop, body: message);
                 return response;
             });
 
-            var receive = Step.Run("receive", ctx, async () =>
+            var receive = await Step.Run("receive", ctx, async () =>
             {
-                var response = await client.Receive();
+                var response = await client.Receive().AsTask();
                 return response;
             });
 
