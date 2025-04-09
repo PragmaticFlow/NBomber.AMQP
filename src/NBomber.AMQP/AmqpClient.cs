@@ -26,7 +26,6 @@ public class AmqpClient(IChannel channel)
     public async Task<Response<object>> Subscribe(string queue, bool autoAck = true)
     {
         await AddConsumer(queue: queue, autoAck: autoAck);
-
         return Response.Ok();
     }
 
@@ -76,7 +75,15 @@ public class AmqpClient(IChannel channel)
             sizeBytes += ea.ConsumerTag.Length;
             sizeBytes += ea.RoutingKey.Length;
 
-            await _queue.Writer.WriteAsync(Response.Ok(ea, sizeBytes: sizeBytes));
+            if (ea.BasicProperties.Headers != null && ea.BasicProperties.Headers.ContainsKey("timestamp"))
+            {
+                var timestampMs = (int)ea.BasicProperties.Headers["timestamp"];
+                var latency = DateTime.UtcNow.Millisecond - timestampMs;
+
+                await _queue.Writer.WriteAsync(Response.Ok(ea, sizeBytes: sizeBytes, customLatencyMs: latency));
+            }
+            else
+                await _queue.Writer.WriteAsync(Response.Ok(ea, sizeBytes: sizeBytes));             
         };
 
         await Channel.BasicConsumeAsync(queue, autoAck, consumer);
@@ -121,7 +128,6 @@ public class AmqpClient(IChannel channel)
     public async Task<Response<object>> Disconnect()
     {
         await Channel.CloseAsync();
-
         return Response.Ok();
     }
 }
