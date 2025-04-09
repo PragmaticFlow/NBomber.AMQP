@@ -31,7 +31,7 @@ public class ClientPoolAmqpExample
 
             var publish = await Step.Run("publish", ctx, async () =>
             {
-                var response = client.Publish(exchange: "myExchange", routingKey: scenarioInstanceId, basicProperties: prop, body: message);
+                var response = await client.Publish(exchange: "myExchange", routingKey: scenarioInstanceId, basicProperties: prop, body: message);
                 return response;
             });
 
@@ -59,12 +59,12 @@ public class ClientPoolAmqpExample
             {
                 var amqpClient = new AmqpClient(channel);
                 var scenarioInstanceId = $"amqp_scenario_{i}";
-                var result = amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
+                var result = await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
                         routingKey: scenarioInstanceId, durable: usePersistence);
 
                 if (!result.IsError)
                 {
-                    amqpClient.Subscribe(queue: scenarioInstanceId);
+                    await amqpClient.Subscribe(queue: scenarioInstanceId);
                     clientPool.AddClient(amqpClient);
                 }
                 else
@@ -73,7 +73,7 @@ public class ClientPoolAmqpExample
         })
         .WithClean(ctx =>
         {
-            clientPool.DisposeClients(client => client.Disconnect());
+            clientPool.DisposeClients(async client => await client.Disconnect());
             return Task.CompletedTask;
         });
 

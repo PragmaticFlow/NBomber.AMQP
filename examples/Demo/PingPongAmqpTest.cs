@@ -3,11 +3,11 @@ using NBomber.CSharp;
 using NBomber.Data;
 using RabbitMQ.Client;
 
-await new PingPongAmqpTest().Run();
+new PingPongAmqpTest().Run();
 
 public class PingPongAmqpTest
 {
-    public async Task Run()
+    public void Run()
     {
         var payload = Data.GenerateRandomBytes(200);
         var factory = new ConnectionFactory { HostName = "localhost" };
@@ -27,7 +27,7 @@ public class PingPongAmqpTest
 
                     var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
 
-                    return amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
+                    return await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
                         routingKey: scenarioInstanceId);
                 });
 
@@ -35,7 +35,7 @@ public class PingPongAmqpTest
                 {
                     var amqpClient = (AmqpClient)ctx.Data["amqpClient"];
                     var queueName = ctx.ScenarioInfo.InstanceId;
-                    return amqpClient.Subscribe(queue: queueName, autoAck: true);
+                    return await amqpClient.Subscribe(queue: queueName, autoAck: true);
                 });                
                 
                 var publish = await Step.Run("publish", ctx, async () =>
@@ -43,7 +43,7 @@ public class PingPongAmqpTest
                     var amqpClient = (AmqpClient)ctx.Data["amqpClient"];
                     var queueName = ctx.ScenarioInfo.InstanceId;
                     var prop = new BasicProperties();
-                    return amqpClient.Publish(exchange: "myExchange", routingKey: queueName, prop, body: payload);
+                    return await amqpClient.Publish(exchange: "myExchange", routingKey: queueName, prop, body: payload);
                 });
 
                 var receive = await Step.Run("receive", ctx, async () =>
@@ -58,11 +58,13 @@ public class PingPongAmqpTest
                     var connection = (IConnection)ctx.Data["connection"];
                     await connection.DisposeAsync();
 
+                    var amqpClient = (AmqpClient)ctx.Data["amqpClient"];
+                    await amqpClient.Disconnect();
+
                     var channel = (IChannel)ctx.Data["channel"];
                     await channel.DisposeAsync();
 
-                    var amqpClient = (AmqpClient)ctx.Data["amqpClient"];
-                    return amqpClient.Disconnect();
+                    return Response.Ok();
                 });
 
                 return Response.Ok();
