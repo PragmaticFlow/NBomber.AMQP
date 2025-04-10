@@ -77,8 +77,8 @@ public class AmqpClient(IChannel channel)
 
             if (ea.BasicProperties.Headers != null && ea.BasicProperties.Headers.ContainsKey("timestamp"))
             {
-                var timestampMs = (int)ea.BasicProperties.Headers["timestamp"];
-                var latency = DateTime.UtcNow.Millisecond - timestampMs;
+                var timestampMs = (long)ea.BasicProperties.Headers["timestamp"];
+                var latency = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - timestampMs;
 
                 await _queue.Writer.WriteAsync(Response.Ok(ea, sizeBytes: sizeBytes, customLatencyMs: latency));
             }

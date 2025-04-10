@@ -8,8 +8,7 @@ public class PingPongAmqpTest
     public void Run()
     {
         NBomberRunner.RegisterScenarios(
-            new PublishScenario().Create("1"), 
-            new PublishScenario().Create("2"), 
+            new PublishScenario().Create(), 
             new ConsumeScenario().Create()
         )
         .Run();
