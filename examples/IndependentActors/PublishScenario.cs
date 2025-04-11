@@ -19,11 +19,11 @@ public class PublishScenario
         return Scenario.Create("publish_scenario", async ctx =>
         {
             var publish = await Step.Run("publish", ctx, async () =>
-            {
+            {                
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 var prop = new BasicProperties
                 {
-                    // We attach current timestamp to calculate final latency on consumer side
+                    // We include the current timestamp so the consumer can calculate the final latency.
                     Headers = new Dictionary<string, object?>
                     {
                         { "timestamp", timestamp } 

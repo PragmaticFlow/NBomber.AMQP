@@ -115,7 +115,16 @@ public class AmqpClient(IChannel channel)
         return sizeBytes;
     }
 
-    public ValueTask<Response<BasicDeliverEventArgs>> Receive() => _queue.Reader.ReadAsync();
+    public ValueTask<Response<BasicDeliverEventArgs>> Receive(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+        {
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            return _queue.Reader.ReadAsync(cts.Token);
+        }
+
+        return _queue.Reader.ReadAsync(cancellationToken);
+    }        
 
     public async Task<Response<object>> Disconnect()
     {
