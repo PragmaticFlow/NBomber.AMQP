@@ -8,14 +8,14 @@ namespace IndependentActors;
 
 public class PublishScenario
 {
-    private byte[] payload = Data.GenerateRandomBytes(200);
-    private ConnectionFactory factory = new ConnectionFactory { HostName = "localhost" };
-    private IConnection connection = null;
-    private IChannel channel = null;
-    private AmqpClient amqpClient = null;
-
     public ScenarioProps Create()
     {
+        byte[] payload = Data.GenerateRandomBytes(200);
+        ConnectionFactory factory = new ConnectionFactory { HostName = "localhost" };
+        IConnection connection = null;
+        IChannel channel = null;
+        AmqpClient amqpClient = null;
+
         return Scenario.Create("publish_scenario", async ctx =>
         {
             var publish = await Step.Run("publish", ctx, async () =>
@@ -23,9 +23,10 @@ public class PublishScenario
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 var prop = new BasicProperties
                 {
+                    // We attach current timestamp to calculate final latency on consumer side
                     Headers = new Dictionary<string, object?>
                     {
-                        { "timestamp", timestamp }
+                        { "timestamp", timestamp } 
                     }
                 };
 

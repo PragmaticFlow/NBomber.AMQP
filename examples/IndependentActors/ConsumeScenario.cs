@@ -6,27 +6,22 @@ using NBomber.CSharp;
 namespace IndependentActors;
 
 public class ConsumeScenario
-{
-    private ConnectionFactory factory = new ConnectionFactory { HostName = "localhost" };
-    private IConnection connection = null;
-    private IChannel channel = null;
-    private AmqpClient amqpClient = null;
-
+{  
     public ScenarioProps Create()
     {
+        ConnectionFactory factory = new ConnectionFactory { HostName = "localhost" };
+        IConnection connection = null;
+        IChannel channel = null;
+        AmqpClient amqpClient = null;
+
         return Scenario.Create("consume_scenario", async ctx =>
         {
-            var subscribe = await Step.Run("subscribe", ctx, async () =>
-            {
-                return await amqpClient.Subscribe(queue: "IndependentActors", autoAck: true);
-            });
+            var message = await amqpClient.Receive();
 
-            var receive = await Step.Run("receive", ctx, async () =>
-            {
-                return await amqpClient.Receive().AsTask();
-            });
+            var timestampMs = (long)message.Payload.Value.BasicProperties.Headers["timestamp"];
+            var latency = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - timestampMs;
 
-            return Response.Ok();
+            return Response.Ok(customLatencyMs: latency);
         })        
         .WithoutWarmUp()
         .WithLoadSimulations(
@@ -40,6 +35,8 @@ public class ConsumeScenario
 
             await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: "IndependentActors",
                 routingKey: "IndependentActors");
+
+            await amqpClient.Subscribe(queue: "IndependentActors", autoAck: true);
         })
         .WithClean(async ctx =>
         {

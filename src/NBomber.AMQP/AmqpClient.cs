@@ -67,23 +67,15 @@ public class AmqpClient(IChannel channel)
     public async Task AddConsumer(string queue, bool autoAck)
     {
         var consumer = new AsyncEventingBasicConsumer(Channel);
-        consumer.ReceivedAsync += async (model, ea) =>
+        consumer.ReceivedAsync += async (model, message) =>
         {
-            var sizeBytes = GetSizeBytesOfBasicProperties(ea.BasicProperties);
+            var sizeBytes = GetSizeBytesOfBasicProperties(message.BasicProperties);
 
-            sizeBytes += ea.Body.Length;
-            sizeBytes += ea.ConsumerTag.Length;
-            sizeBytes += ea.RoutingKey.Length;
+            sizeBytes += message.Body.Length;
+            sizeBytes += message.ConsumerTag.Length;
+            sizeBytes += message.RoutingKey.Length;
 
-            if (ea.BasicProperties.Headers != null && ea.BasicProperties.Headers.ContainsKey("timestamp"))
-            {
-                var timestampMs = (long)ea.BasicProperties.Headers["timestamp"];
-                var latency = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - timestampMs;
-
-                await _queue.Writer.WriteAsync(Response.Ok(ea, sizeBytes: sizeBytes, customLatencyMs: latency));
-            }
-            else
-                await _queue.Writer.WriteAsync(Response.Ok(ea, sizeBytes: sizeBytes));             
+            await _queue.Writer.WriteAsync(Response.Ok(message, sizeBytes: sizeBytes));                            
         };
 
         await Channel.BasicConsumeAsync(queue, autoAck, consumer);
