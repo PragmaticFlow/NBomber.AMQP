@@ -1,13 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <LangVersion>12.0</LangVersion>
+        <Version>0.1.0</Version>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Company>NBomber</Company>
+        <Copyright>NBomber@2025</Copyright>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageIcon>nbomber_icon.png</PackageIcon>
+        <RepositoryUrl>https://github.com/PragmaticFlow/NBomber.AMQP</RepositoryUrl>
+        <PackageTags>mqtt, load-testing, performance-testing, integration-testing</PackageTags>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <Description>NBomber plugin for writing AMQP scenarios</Description>
+        <Title>NBomber.AMQP</Title>
     </PropertyGroup>
 
-    <ItemGroup>      
-	  <PackageReference Include="NBomber" Version="6.0.2" />
+    <ItemGroup>
+        <None Include="../../LICENSE" Pack="true" Visible="false" PackagePath="" />
+        <None Include="../../assets/nbomber_icon.png" Pack="true" Visible="false" PackagePath="" />
+    </ItemGroup>
+    
+    <ItemGroup>
       <PackageReference Include="NBomber.Contracts" Version="6.0.1" />
       <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
     </ItemGroup>
