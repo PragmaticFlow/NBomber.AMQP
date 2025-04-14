@@ -5,7 +5,7 @@ using NBomber.CSharp;
 using NBomber.Data;
 using RabbitMQ.Client;
 
-new ClientPoolAmqpExample().Run();
+new ClientPoolExample().Run();
 
 public class CustomScenarioSettings
 {
@@ -15,7 +15,7 @@ public class CustomScenarioSettings
     public bool UsePersistence { get; set; }
 }
 
-public class ClientPoolAmqpExample
+public class ClientPoolExample
 {
     public void Run()
     {
@@ -26,11 +26,12 @@ public class ClientPoolAmqpExample
         var scenario = Scenario.Create("amqp_scenario", async ctx =>
         {
             var client = clientPool.GetClient(ctx.ScenarioInfo);
-            var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
-            var prop = new BasicProperties { Persistent = usePersistence };
-
+            
             var publish = await Step.Run("publish", ctx, async () =>
             {
+                var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
+                var prop = new BasicProperties { Persistent = usePersistence };
+                
                 var response = await client.Publish(exchange: "myExchange", routingKey: scenarioInstanceId, basicProperties: prop, body: message);
                 return response;
             });

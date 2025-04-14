@@ -24,7 +24,7 @@ public class PublishScenario
                 var prop = new BasicProperties
                 {
                     // We include the current timestamp so the consumer can calculate the final latency.
-                    Headers = new Dictionary<string, object?>
+                    Headers = new Dictionary<string, object>
                     {
                         { "timestamp", timestamp } 
                     }

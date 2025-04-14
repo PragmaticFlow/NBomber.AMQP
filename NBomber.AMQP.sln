@@ -18,6 +18,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndependentActors", "exampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBomber.AMQP.Tests", "tests\NBomber.AMQP.Tests\NBomber.AMQP.Tests.csproj", "{61117DA9-D8CA-9E46-7E7B-A7809F624503}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C81B94A8-6A6B-435B-81CE-63B2EA73B1B6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution items", "solution items", "{0CF68B23-38FA-4420-8276-FD940BD770C4}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +59,7 @@ Global
 		{DEFB3816-6863-8526-C070-928DA33ECCFE} = {76D4E4E9-9859-40D5-8088-36168D25686A}
 		{B333B5D6-8E99-4843-9D88-F9B1861256A3} = {76D4E4E9-9859-40D5-8088-36168D25686A}
 		{29EFB70B-7972-4D17-ACAA-D7BB7C023E67} = {76D4E4E9-9859-40D5-8088-36168D25686A}
+		{61117DA9-D8CA-9E46-7E7B-A7809F624503} = {C81B94A8-6A6B-435B-81CE-63B2EA73B1B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {571E490D-60EA-41B9-9C6B-F9884459D2FD}

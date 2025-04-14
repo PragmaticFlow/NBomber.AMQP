@@ -1,9 +1,9 @@
 ﻿using NBomber.CSharp;
 using IndependentActors;
 
-new PingPongAmqpTest().Run();
+new IndependentActorsExample().Run();
 
-public class PingPongAmqpTest
+public class IndependentActorsExample
 {
     public void Run()
     {

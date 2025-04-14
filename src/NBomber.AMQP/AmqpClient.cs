@@ -1,24 +1,23 @@
-﻿using NBomber.Contracts;
-using NBomber.CSharp;
+﻿using System.Threading.Channels;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Threading.Channels;
+using NBomber.Contracts;
+using NBomber.CSharp;
 
 namespace NBomber.AMQP;
 
 public class AmqpClient(IChannel channel)
 {
-    public IChannel Channel { get; } = channel;
+    public IChannel AmqpChannel { get; } = channel;
 
-    private readonly Channel<Response<BasicDeliverEventArgs>> _queue =
-        System.Threading.Channels.Channel.CreateUnbounded<Response<BasicDeliverEventArgs>>();
+    private readonly Channel<Response<BasicDeliverEventArgs>> _queue = Channel.CreateUnbounded<Response<BasicDeliverEventArgs>>();
 
     public async Task<Response<object>> Connect(string exchange, string exchangeType, string queue, string routingKey, bool durable = false,
         bool exclusive = false, bool autoDelete = false)
     {
-        await Channel.ExchangeDeclareAsync(exchange: exchange, type: exchangeType);
-        await Channel.QueueDeclareAsync(queue: queue, durable: durable, exclusive: exclusive, autoDelete: autoDelete);
-        await Channel.QueueBindAsync(queue: queue, exchange: exchange, routingKey: routingKey);
+        await AmqpChannel.ExchangeDeclareAsync(exchange: exchange, type: exchangeType);
+        await AmqpChannel.QueueDeclareAsync(queue: queue, durable: durable, exclusive: exclusive, autoDelete: autoDelete);
+        await AmqpChannel.QueueBindAsync(queue: queue, exchange: exchange, routingKey: routingKey);
 
         return Response.Ok();
     }
@@ -33,7 +32,7 @@ public class AmqpClient(IChannel channel)
         TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
         where TProperties : IReadOnlyBasicProperties, IAmqpHeader
     {
-        await Channel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body);
+        await AmqpChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body);
 
         var sizeBytes = body.Length + exchange.Length + routingKey.Length +
                         GetSizeBytesOfBasicProperties(basicProperties);
@@ -45,7 +44,7 @@ public class AmqpClient(IChannel channel)
         TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
         where TProperties : IReadOnlyBasicProperties, IAmqpHeader
     {
-        await Channel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body);
+        await AmqpChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body);
 
         var sizeBytes = body.Length + exchange.Bytes.Length + routingKey.Bytes.Length
                         + GetSizeBytesOfBasicProperties(basicProperties);
@@ -56,7 +55,7 @@ public class AmqpClient(IChannel channel)
     public async Task<Response<object>> Publish<T>(PublicationAddress addr, T basicProperties,
         ReadOnlyMemory<byte> body) where T : IReadOnlyBasicProperties, IAmqpHeader
     {
-        await Channel.BasicPublishAsync(addr, basicProperties, body);
+        await AmqpChannel.BasicPublishAsync(addr, basicProperties, body);
 
         var sizeBytes = body.Length + addr.RoutingKey.Length + addr.ExchangeName.Length + addr.ExchangeType.Length
                         + GetSizeBytesOfBasicProperties(basicProperties);
@@ -64,9 +63,18 @@ public class AmqpClient(IChannel channel)
         return Response.Ok(sizeBytes: sizeBytes);
     }
 
-    public async Task AddConsumer(string queue, bool autoAck)
+    public ValueTask<Response<BasicDeliverEventArgs>> Receive(CancellationToken cancellationToken = default) => 
+        _queue.Reader.ReadAsync(cancellationToken);
+
+    public async Task<Response<object>> Disconnect()
     {
-        var consumer = new AsyncEventingBasicConsumer(Channel);
+        await AmqpChannel.CloseAsync();
+        return Response.Ok();
+    }
+    
+    private Task AddConsumer(string queue, bool autoAck)
+    {
+        var consumer = new AsyncEventingBasicConsumer(AmqpChannel);
         consumer.ReceivedAsync += async (model, message) =>
         {
             var sizeBytes = GetSizeBytesOfBasicProperties(message.BasicProperties);
@@ -78,7 +86,7 @@ public class AmqpClient(IChannel channel)
             await _queue.Writer.WriteAsync(Response.Ok(message, sizeBytes: sizeBytes));                            
         };
 
-        await Channel.BasicConsumeAsync(queue, autoAck, consumer);
+        return AmqpChannel.BasicConsumeAsync(queue, autoAck, consumer);
     }
 
     private static long GetSizeBytesOfBasicProperties(IReadOnlyBasicProperties basicProperties)
@@ -113,13 +121,5 @@ public class AmqpClient(IChannel channel)
         sizeBytes += basicProperties.ReplyToAddress?.ExchangeType.Length ?? 0;
 
         return sizeBytes;
-    }
-
-    public ValueTask<Response<BasicDeliverEventArgs>> Receive(CancellationToken cancellationToken = default) => _queue.Reader.ReadAsync(cancellationToken);     
-
-    public async Task<Response<object>> Disconnect()
-    {
-        await Channel.CloseAsync();
-        return Response.Ok();
     }
 }
