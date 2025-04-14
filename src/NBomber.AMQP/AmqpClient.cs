@@ -6,7 +6,7 @@ using NBomber.CSharp;
 
 namespace NBomber.AMQP;
 
-public class AmqpClient(IChannel channel)
+public class AmqpClient(IChannel channel) : IDisposable
 {
     public IChannel AmqpChannel { get; } = channel;
 
@@ -121,5 +121,10 @@ public class AmqpClient(IChannel channel)
         sizeBytes += basicProperties.ReplyToAddress?.ExchangeType.Length ?? 0;
 
         return sizeBytes;
+    }
+
+    public void Dispose()
+    {
+        AmqpChannel.Dispose();
     }
 }
