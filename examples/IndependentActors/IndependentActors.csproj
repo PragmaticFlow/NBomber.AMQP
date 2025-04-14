@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NBomber" Version="6.0.2" />
     <PackageReference Include="NBomber.Data" Version="6.0.0" />
   </ItemGroup>
 

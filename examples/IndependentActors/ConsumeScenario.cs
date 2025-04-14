@@ -16,7 +16,7 @@ public class ConsumeScenario
 
         return Scenario.Create("consume_scenario", async ctx =>
         {
-            var message = await amqpClient.Receive();
+            var message = await amqpClient.Receive(ctx.ScenarioCancellationToken);
 
             // Final latency is computed by subtracting the current time from the timestamp in the header.
             var timestampMs = (long)message.Payload.Value.BasicProperties.Headers["timestamp"];
