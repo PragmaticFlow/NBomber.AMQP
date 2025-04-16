@@ -8,10 +8,7 @@ namespace IndependentActors;
 public class ConsumeScenario
 {  
     public ScenarioProps Create()
-    {
-        ConnectionFactory factory = new ConnectionFactory { HostName = "localhost" };
-        IConnection connection = null;
-        IChannel channel = null;
+    {        
         AmqpClient amqpClient = null;
 
         return Scenario.Create("consume_scenario", async ctx =>
@@ -30,8 +27,9 @@ public class ConsumeScenario
         )
         .WithInit(async ctx =>
         {
-            connection = await factory.CreateConnectionAsync();
-            channel = await connection.CreateChannelAsync();
+            var factory = new ConnectionFactory { HostName = "localhost" };
+            var connection = await factory.CreateConnectionAsync();
+            var channel = await connection.CreateChannelAsync();
             amqpClient = new AmqpClient(channel);
 
             await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: "IndependentActors",
@@ -41,9 +39,7 @@ public class ConsumeScenario
         })
         .WithClean(async ctx =>
         {
-            await connection.DisposeAsync();
             await amqpClient.Disconnect();
-            await channel.DisposeAsync();
         });
     }
 }
