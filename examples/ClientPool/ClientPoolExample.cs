@@ -52,13 +52,14 @@ public class ClientPoolExample
             message = Data.GenerateRandomBytes(config.MsgSizeBytes);
             usePersistence = config.UsePersistence;
 
-            var factory = new ConnectionFactory { HostName = config.AmqpServerUrl };
-            var connection = await factory.CreateConnectionAsync();
-            var channel = await connection.CreateChannelAsync();
+            var factory = new ConnectionFactory { HostName = config.AmqpServerUrl };            
 
             for (var i = 0; i < config.ClientCount; i++)
             {
+                var connection = await factory.CreateConnectionAsync();
+                var channel = await connection.CreateChannelAsync();
                 var amqpClient = new AmqpClient(channel);
+
                 var scenarioInstanceId = $"amqp_scenario_{i}";
                 var result = await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
                         routingKey: scenarioInstanceId, durable: usePersistence);

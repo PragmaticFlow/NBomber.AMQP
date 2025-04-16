@@ -10,10 +10,7 @@ public class PublishScenario
 {
     public ScenarioProps Create()
     {
-        byte[] payload = Data.GenerateRandomBytes(200);
-        ConnectionFactory factory = new ConnectionFactory { HostName = "localhost" };
-        IConnection connection = null;
-        IChannel channel = null;
+        byte[] payload = Data.GenerateRandomBytes(200);        
         AmqpClient amqpClient = null;
 
         return Scenario.Create("publish_scenario", async ctx =>
@@ -41,8 +38,9 @@ public class PublishScenario
         )
         .WithInit(async ctx =>
         {
-            connection = await factory.CreateConnectionAsync();
-            channel = await connection.CreateChannelAsync();
+            var factory = new ConnectionFactory { HostName = "localhost" };
+            var connection = await factory.CreateConnectionAsync();
+            var channel = await connection.CreateChannelAsync();
             amqpClient = new AmqpClient(channel);
 
             await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: "IndependentActors",
@@ -50,9 +48,7 @@ public class PublishScenario
         })
         .WithClean(async ctx =>
         {
-            await connection.DisposeAsync();
             await amqpClient.Disconnect();
-            await channel.DisposeAsync();
         });
     }
 }
