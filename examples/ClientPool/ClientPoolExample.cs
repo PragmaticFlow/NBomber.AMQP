@@ -75,7 +75,7 @@ public class ClientPoolExample
         })
         .WithClean(ctx =>
         {
-            clientPool.DisposeClients(async client => await client.Disconnect());
+            clientPool.DisposeClients(client => client.Disconnect());
             return Task.CompletedTask;
         });
 

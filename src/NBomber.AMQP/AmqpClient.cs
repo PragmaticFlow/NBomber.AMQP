@@ -69,6 +69,7 @@ public class AmqpClient(IChannel channel) : IDisposable
     public async Task<Response<object>> Disconnect()
     {
         await AmqpChannel.CloseAsync();
+        await AmqpChannel.DisposeAsync();
         return Response.Ok();
     }
     
