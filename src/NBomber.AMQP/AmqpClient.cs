@@ -63,13 +63,21 @@ public class AmqpClient(IChannel channel) : IDisposable
         return Response.Ok(sizeBytes: sizeBytes);
     }
 
-    public ValueTask<Response<BasicDeliverEventArgs>> Receive(CancellationToken cancellationToken = default) => 
-        _queue.Reader.ReadAsync(cancellationToken);
+    public async ValueTask<Response<BasicDeliverEventArgs>> Receive(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _queue.Reader.ReadAsync(cancellationToken);
+        }
+        catch (OperationCanceledException ex)
+        {
+            throw new IgnoreMeasurementException();
+        }
+    }
 
     public async Task<Response<object>> Disconnect()
     {
         await AmqpChannel.CloseAsync();
-        await AmqpChannel.DisposeAsync();
         return Response.Ok();
     }
     

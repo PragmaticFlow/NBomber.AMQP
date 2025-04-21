@@ -68,6 +68,7 @@ public class AmqpTest
             .Run();
         
         Assert.True(stats.AllOkCount > 0);
+        Assert.Equal(0, stats.AllFailCount);
 
         foreach (var scenarioStats in stats.ScenarioStats)
         {
