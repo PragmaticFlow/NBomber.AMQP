@@ -84,7 +84,7 @@ public class AmqpClient(IChannel channel) : IDisposable
     private Task AddConsumer(string queue, bool autoAck)
     {
         var consumer = new AsyncEventingBasicConsumer(AmqpChannel);
-        consumer.ReceivedAsync += async (model, message) =>
+        consumer.ReceivedAsync += (model, message) =>
         {
             var sizeBytes = GetSizeBytesOfBasicProperties(message.BasicProperties);
 
@@ -92,7 +92,8 @@ public class AmqpClient(IChannel channel) : IDisposable
             sizeBytes += message.ConsumerTag.Length;
             sizeBytes += message.RoutingKey.Length;
 
-            await _queue.Writer.WriteAsync(Response.Ok(message, sizeBytes: sizeBytes));                            
+            _queue.Writer.TryWrite(Response.Ok(message, sizeBytes: sizeBytes));
+            return Task.CompletedTask;
         };
 
         return AmqpChannel.BasicConsumeAsync(queue, autoAck, consumer);
