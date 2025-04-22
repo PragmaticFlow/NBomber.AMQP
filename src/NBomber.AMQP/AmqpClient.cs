@@ -8,10 +8,12 @@ namespace NBomber.AMQP;
 
 public class AmqpClient(IChannel channel) : IDisposable
 {
-    public IChannel AmqpChannel { get; } = channel;
-
     private readonly Channel<Response<BasicDeliverEventArgs>> _queue = Channel.CreateUnbounded<Response<BasicDeliverEventArgs>>();
+    private long _msgReceivedCount;
 
+    public IChannel AmqpChannel { get; } = channel;
+    public long MsgReceivedCount => _msgReceivedCount;
+    
     public async Task<Response<object>> Connect(string exchange, string exchangeType, string queue, string routingKey, bool durable = false,
         bool exclusive = false, bool autoDelete = false)
     {
@@ -86,6 +88,8 @@ public class AmqpClient(IChannel channel) : IDisposable
         var consumer = new AsyncEventingBasicConsumer(AmqpChannel);
         consumer.ReceivedAsync += (model, message) =>
         {
+            Interlocked.Increment(ref _msgReceivedCount);
+            
             var sizeBytes = GetSizeBytesOfBasicProperties(message.BasicProperties);
 
             sizeBytes += message.Body.Length;
