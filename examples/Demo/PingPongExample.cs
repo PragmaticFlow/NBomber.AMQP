@@ -24,7 +24,7 @@ public class PingPongExample
 
                 var scenarioInstanceId = ctx.ScenarioInfo.InstanceId;
 
-                return await amqpClient.Connect(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
+                return await amqpClient.DeclareQueue(exchange: "myExchange", exchangeType: ExchangeType.Direct, queue: scenarioInstanceId,
                     routingKey: scenarioInstanceId);
             });
 

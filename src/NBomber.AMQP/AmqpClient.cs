@@ -15,7 +15,7 @@ public class AmqpClient(IChannel channel) : IDisposable
     
     public long MsgReceivedCount => _msgReceivedCount;
     
-    public async Task<Response<object>> Connect(string exchange, string exchangeType, string queue, string routingKey, bool durable = false,
+    public async Task<Response<object>> DeclareQueue(string exchange, string exchangeType, string queue, string routingKey, bool durable = false,
         bool exclusive = false, bool autoDelete = false)
     {
         await AmqpChannel.ExchangeDeclareAsync(exchange: exchange, type: exchangeType);
