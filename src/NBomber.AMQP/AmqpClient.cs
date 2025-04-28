@@ -12,6 +12,7 @@ public class AmqpClient(IChannel channel) : IDisposable
     private long _msgReceivedCount;
 
     public IChannel AmqpChannel { get; } = channel;
+    
     public long MsgReceivedCount => _msgReceivedCount;
     
     public async Task<Response<object>> Connect(string exchange, string exchangeType, string queue, string routingKey, bool durable = false,
@@ -30,6 +31,16 @@ public class AmqpClient(IChannel channel) : IDisposable
         return Response.Ok();
     }
 
+    public async Task<Response<object>> Publish(string exchange, string routingKey,
+        ReadOnlyMemory<byte> body = default, bool mandatory = false)
+    {
+        await AmqpChannel.BasicPublishAsync(exchange, routingKey, mandatory, body);
+
+        var sizeBytes = body.Length + exchange.Length + routingKey.Length;
+
+        return Response.Ok(sizeBytes: sizeBytes);
+    }
+    
     public async Task<Response<object>> Publish<TProperties>(string exchange, string routingKey,
         TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
         where TProperties : IReadOnlyBasicProperties, IAmqpHeader
@@ -42,36 +53,13 @@ public class AmqpClient(IChannel channel) : IDisposable
         return Response.Ok(sizeBytes: sizeBytes);
     }
 
-    public async Task<Response<object>> Publish<TProperties>(CachedString exchange, CachedString routingKey,
-        TProperties basicProperties, ReadOnlyMemory<byte> body = default, bool mandatory = false)
-        where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-    {
-        await AmqpChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body);
-
-        var sizeBytes = body.Length + exchange.Bytes.Length + routingKey.Bytes.Length
-                        + GetSizeBytesOfBasicProperties(basicProperties);
-
-        return Response.Ok(sizeBytes: sizeBytes);
-    }
-
-    public async Task<Response<object>> Publish<T>(PublicationAddress addr, T basicProperties,
-        ReadOnlyMemory<byte> body) where T : IReadOnlyBasicProperties, IAmqpHeader
-    {
-        await AmqpChannel.BasicPublishAsync(addr, basicProperties, body);
-
-        var sizeBytes = body.Length + addr.RoutingKey.Length + addr.ExchangeName.Length + addr.ExchangeType.Length
-                        + GetSizeBytesOfBasicProperties(basicProperties);
-
-        return Response.Ok(sizeBytes: sizeBytes);
-    }
-
     public async ValueTask<Response<BasicDeliverEventArgs>> Receive(CancellationToken cancellationToken = default)
     {
         try
         {
             return await _queue.Reader.ReadAsync(cancellationToken);
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
             throw new IgnoreMeasurementException();
         }
