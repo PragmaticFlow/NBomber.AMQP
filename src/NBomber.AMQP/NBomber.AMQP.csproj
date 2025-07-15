@@ -15,6 +15,7 @@
         <RepositoryUrl>https://github.com/PragmaticFlow/NBomber.AMQP</RepositoryUrl>
         <PackageTags>mqtt, load-testing, performance-testing, integration-testing</PackageTags>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Description>NBomber plugin for writing AMQP scenarios</Description>
         <Title>NBomber.AMQP</Title>
     </PropertyGroup>
@@ -25,7 +26,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <PackageReference Include="NBomber.Contracts" Version="6.1.0-beta.6" />
+      <PackageReference Include="NBomber.Contracts" Version="6.1.0-beta.7" />
       <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
     </ItemGroup>
 
